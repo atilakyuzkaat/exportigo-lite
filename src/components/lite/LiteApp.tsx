@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import {
   DndContext,
@@ -47,6 +47,8 @@ export default function LiteApp() {
   const [activeDrag, setActiveDrag] = useState<BoxType | null>(null);
   const [showContainerView, setShowContainerView] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('products');
+  const regenerateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasGenerated = useRef(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -54,10 +56,20 @@ export default function LiteApp() {
     })
   );
 
+  // Auto-regenerate pallets after quantity or product changes
+  const triggerAutoRegenerate = useCallback(() => {
+    if (!hasGenerated.current) return;
+    if (regenerateTimer.current) clearTimeout(regenerateTimer.current);
+    regenerateTimer.current = setTimeout(() => {
+      generatePallets();
+    }, 600);
+  }, [generatePallets]);
+
   const handleQuantityChange = useCallback((id: string, qty: number) => {
     setQuantities(prev => ({ ...prev, [id]: qty }));
     updateBoxType(id, { quantity: qty });
-  }, [updateBoxType]);
+    triggerAutoRegenerate();
+  }, [updateBoxType, triggerAutoRegenerate]);
 
   const handleAddProduct = useCallback((product: Omit<BoxType, 'id' | 'quantity' | 'color'>) => {
     addBoxType();
@@ -73,8 +85,9 @@ export default function LiteApp() {
       });
       setQuantities(prev => ({ ...prev, [lastBox.id]: 1 }));
     }
+    triggerAutoRegenerate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addBoxType, updateBoxType]);
+  }, [addBoxType, updateBoxType, triggerAutoRegenerate]);
 
   const handleDeleteProduct = useCallback((id: string) => {
     removeBoxType(id);
@@ -83,7 +96,8 @@ export default function LiteApp() {
       delete next[id];
       return next;
     });
-  }, [removeBoxType]);
+    triggerAutoRegenerate();
+  }, [removeBoxType, triggerAutoRegenerate]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current;
@@ -106,6 +120,7 @@ export default function LiteApp() {
     });
     setTimeout(() => {
       generatePallets();
+      hasGenerated.current = true;
       setMobileTab('workspace');
     }, 50);
   }, [quantities, updateBoxType, generatePallets]);
