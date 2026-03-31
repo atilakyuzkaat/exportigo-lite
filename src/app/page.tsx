@@ -18,11 +18,11 @@ import { useLiteStore } from '@/lib/lite/store';
 import { BoxType } from '@/lib/lite/types';
 
 import ProductPanel from '@/components/lite/ProductPanel';
-import PalletWorkspace from '@/components/lite/PalletWorkspace';
 import StatsPanel from '@/components/lite/StatsPanel';
 import DragOverlayContent from '@/components/lite/DragOverlayContent';
 
 const ContainerView3D = dynamic(() => import('@/components/lite/ContainerView3D'), { ssr: false });
+const PalletWorkspace = dynamic(() => import('@/components/lite/PalletWorkspace'), { ssr: false });
 
 export default function LitePage() {
   const { data: session, status } = useSession();
