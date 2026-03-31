@@ -56,14 +56,29 @@ export default function LiteApp() {
     })
   );
 
+  const hasGeneratedContainer = useRef(false);
+
   // Auto-regenerate pallets after quantity or product changes
   const triggerAutoRegenerate = useCallback(() => {
     if (!hasGenerated.current) return;
     if (regenerateTimer.current) clearTimeout(regenerateTimer.current);
     regenerateTimer.current = setTimeout(() => {
       generatePallets();
+      // Also regenerate container if it was previously generated
+      if (hasGeneratedContainer.current) {
+        setTimeout(() => generateContainer(), 100);
+      }
     }, 600);
-  }, [generatePallets]);
+  }, [generatePallets, generateContainer]);
+
+  // Auto-regenerate container when pallet list changes (duplicate/remove)
+  const triggerContainerRegenerate = useCallback(() => {
+    if (!hasGeneratedContainer.current) return;
+    if (regenerateTimer.current) clearTimeout(regenerateTimer.current);
+    regenerateTimer.current = setTimeout(() => {
+      generateContainer();
+    }, 300);
+  }, [generateContainer]);
 
   const handleQuantityChange = useCallback((id: string, qty: number) => {
     setQuantities(prev => ({ ...prev, [id]: qty }));
@@ -127,9 +142,26 @@ export default function LiteApp() {
 
   const handleGenerateContainer = useCallback(() => {
     generateContainer();
+    hasGeneratedContainer.current = true;
     setShowContainerView(true);
     setMobileTab('workspace');
   }, [generateContainer]);
+
+  // Wrapped pallet list operations with auto container regeneration
+  const handleDuplicatePallet = useCallback((id: string) => {
+    duplicatePallet(id);
+    triggerContainerRegenerate();
+  }, [duplicatePallet, triggerContainerRegenerate]);
+
+  const handleRemovePallet = useCallback((id: string) => {
+    removePallet(id);
+    triggerContainerRegenerate();
+  }, [removePallet, triggerContainerRegenerate]);
+
+  const handleUpdateDuplicateCount = useCallback((id: string, count: number) => {
+    updateDuplicateCount(id, count);
+    triggerContainerRegenerate();
+  }, [updateDuplicateCount, triggerContainerRegenerate]);
 
   // Auth loading
   if (status === 'loading') {
@@ -292,9 +324,9 @@ export default function LiteApp() {
             selectedContainerType={selectedContainerType}
             onContainerTypeChange={setSelectedContainerType}
             onGenerateContainer={handleGenerateContainer}
-            onDuplicatePallet={duplicatePallet}
-            onRemovePallet={removePallet}
-            onUpdateDuplicateCount={updateDuplicateCount}
+            onDuplicatePallet={handleDuplicatePallet}
+            onRemovePallet={handleRemovePallet}
+            onUpdateDuplicateCount={handleUpdateDuplicateCount}
             lang={lang}
           />
         </div>
