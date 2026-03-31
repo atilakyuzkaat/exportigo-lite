@@ -1,0 +1,117 @@
+// =============================================
+// Exportigo Lite — Prisma Schema
+// =============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+// === AUTH (NextAuth.js) ===
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// === KULLANICI ===
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+
+  accounts Account[]
+  sessions Session[]
+  products Product[]
+  plans    LoadPlan[]
+}
+
+// === ÜRÜN KÜTÜPHANESİ (Koli Tipleri) ===
+
+model Product {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String
+  length    Float    // cm
+  width     Float    // cm
+  height    Float    // cm
+  weight    Float    // kg
+  maxStack  Int      // üstüne max kaç koli
+  color     String   @default("#3B82F6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items LoadPlanItem[]
+
+  @@index([userId])
+}
+
+// === YÜKLEME PLANI ===
+
+model LoadPlan {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String   @default("Yeni Plan")
+  palletTypeId    String   // euro, us, asia, custom
+  containerTypeId String?  // 20, 40, 40hc, 45hc
+  status          String   @default("draft") // draft, completed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items LoadPlanItem[]
+
+  @@index([userId])
+}
+
+model LoadPlanItem {
+  id         String @id @default(cuid())
+  loadPlanId String
+  productId  String
+  quantity   Int    @default(1)
+
+  loadPlan LoadPlan @relation(fields: [loadPlanId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([loadPlanId])
+}
