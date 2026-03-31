@@ -181,7 +181,7 @@ export default function ProductPanel({
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
-    <div className="w-80 flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-4 gap-4 overflow-hidden">
+    <div className="w-full md:w-80 flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:border-r border-gray-200 dark:border-gray-800 p-4 gap-4 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between flex-shrink-0">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">

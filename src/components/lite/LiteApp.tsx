@@ -24,6 +24,8 @@ import DragOverlayContent from '@/components/lite/DragOverlayContent';
 const ContainerView3D = dynamic(() => import('@/components/lite/ContainerView3D'), { ssr: false });
 const PalletWorkspace = dynamic(() => import('@/components/lite/PalletWorkspace'), { ssr: false });
 
+type MobileTab = 'products' | 'workspace' | 'stats';
+
 export default function LiteApp() {
   const { data: session, status } = useSession();
   const store = useLiteStore();
@@ -36,20 +38,16 @@ export default function LiteApp() {
     containerResult, generateContainer,
   } = store;
 
-  // Quantities state (separate from store for drag UX)
   const [quantities, setQuantities] = useState<Record<string, number>>(() => {
     const q: Record<string, number> = {};
     boxTypes.forEach(b => { q[b.id] = b.quantity; });
     return q;
   });
 
-  // Active drag item
   const [activeDrag, setActiveDrag] = useState<BoxType | null>(null);
-
-  // Show container 3D
   const [showContainerView, setShowContainerView] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>('products');
 
-  // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -108,15 +106,17 @@ export default function LiteApp() {
     });
     setTimeout(() => {
       generatePallets();
+      setMobileTab('workspace');
     }, 50);
   }, [quantities, updateBoxType, generatePallets]);
 
   const handleGenerateContainer = useCallback(() => {
     generateContainer();
     setShowContainerView(true);
+    setMobileTab('workspace');
   }, [generateContainer]);
 
-  // Auth loading state
+  // Auth loading
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -144,7 +144,6 @@ export default function LiteApp() {
           <p className="text-gray-500 dark:text-gray-400 mb-8">
             Palet & Konteyner Yukleme Optimizasyonu
           </p>
-
           <button
             onClick={() => signIn('google')}
             className="inline-flex items-center gap-3 px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-lg"
@@ -164,6 +163,38 @@ export default function LiteApp() {
     );
   }
 
+  // Center panel content
+  const centerPanel = showContainerView && containerResult ? (
+    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+      <div className="flex-shrink-0 p-3 md:p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <h2 className="font-semibold text-sm md:text-base text-gray-800 dark:text-white">
+          {lang === 'tr' ? 'Konteyner Gorunumu' : 'Container View'}
+          <span className="text-xs md:text-sm font-normal text-gray-500 ml-2">
+            ({containerResult.containerType.name})
+          </span>
+        </h2>
+        <button
+          onClick={() => setShowContainerView(false)}
+          className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+        >
+          {lang === 'tr' ? 'Palete Don' : 'Back to Pallet'}
+        </button>
+      </div>
+      <div className="flex-1 p-2 md:p-4">
+        <ContainerView3D containerResult={containerResult} />
+      </div>
+    </div>
+  ) : (
+    <PalletWorkspace
+      palletResult={palletResults[0] || null}
+      boxTypes={boxTypes}
+      selectedPalletType={selectedPalletType}
+      onPalletTypeChange={setSelectedPalletType}
+      onGenerate={handleGenerate}
+      lang={lang}
+    />
+  );
+
   return (
     <DndContext
       sensors={sensors}
@@ -171,26 +202,24 @@ export default function LiteApp() {
       onDragEnd={handleDragEnd}
     >
       <div className="h-screen flex flex-col overflow-hidden">
-        {/* Top Header Bar */}
-        <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 h-14 flex items-center justify-between z-50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Header */}
+        <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 md:px-4 h-12 md:h-14 flex items-center justify-between z-50">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-800 dark:text-white leading-tight">
-                Exportigo Lite
-              </h1>
-            </div>
+            <h1 className="text-sm md:text-lg font-bold text-gray-800 dark:text-white leading-tight">
+              Exportigo Lite
+            </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {containerResult && (
               <button
-                onClick={() => setShowContainerView(!showContainerView)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                onClick={() => { setShowContainerView(!showContainerView); setMobileTab('workspace'); }}
+                className={`hidden sm:block px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   showContainerView
                     ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
                     : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
@@ -202,22 +231,22 @@ export default function LiteApp() {
 
             <button
               onClick={() => setLang(lang === 'tr' ? 'en' : 'tr')}
-              className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
+              className="px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
             >
               {lang === 'tr' ? 'EN' : 'TR'}
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
               {session.user?.image && (
                 <Image
                   src={session.user.image}
                   alt=""
                   width={28}
                   height={28}
-                  className="w-7 h-7 rounded-full"
+                  className="w-6 h-6 md:w-7 md:h-7 rounded-full"
                 />
               )}
-              <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:inline">
+              <span className="text-sm text-gray-600 dark:text-gray-400 hidden md:inline">
                 {session.user?.name?.split(' ')[0]}
               </span>
               <button
@@ -230,8 +259,8 @@ export default function LiteApp() {
           </div>
         </header>
 
-        {/* Main Content: 3 Panel Layout */}
-        <div className="flex-1 flex overflow-hidden">
+        {/* Desktop: 3-panel layout */}
+        <div className="flex-1 hidden md:flex overflow-hidden">
           <ProductPanel
             products={boxTypes}
             quantities={quantities}
@@ -240,38 +269,7 @@ export default function LiteApp() {
             onDeleteProduct={handleDeleteProduct}
             lang={lang}
           />
-
-          {showContainerView && containerResult ? (
-            <div className="flex-1 flex flex-col bg-white dark:bg-gray-850">
-              <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                <h2 className="font-semibold text-gray-800 dark:text-white">
-                  {lang === 'tr' ? 'Konteyner Gorunumu' : 'Container View'}
-                  <span className="text-sm font-normal text-gray-500 ml-2">
-                    ({containerResult.containerType.name})
-                  </span>
-                </h2>
-                <button
-                  onClick={() => setShowContainerView(false)}
-                  className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                >
-                  {lang === 'tr' ? 'Palete Don' : 'Back to Pallet'}
-                </button>
-              </div>
-              <div className="flex-1 p-4">
-                <ContainerView3D containerResult={containerResult} />
-              </div>
-            </div>
-          ) : (
-            <PalletWorkspace
-              palletResult={palletResults[0] || null}
-              boxTypes={boxTypes}
-              selectedPalletType={selectedPalletType}
-              onPalletTypeChange={setSelectedPalletType}
-              onGenerate={handleGenerate}
-              lang={lang}
-            />
-          )}
-
+          {centerPanel}
           <StatsPanel
             palletResult={palletResults[0] || null}
             palletResults={palletResults}
@@ -284,6 +282,95 @@ export default function LiteApp() {
             onUpdateDuplicateCount={updateDuplicateCount}
             lang={lang}
           />
+        </div>
+
+        {/* Mobile: Tab-based layout */}
+        <div className="flex-1 flex flex-col md:hidden overflow-hidden">
+          {/* Mobile content area */}
+          <div className="flex-1 overflow-hidden">
+            {mobileTab === 'products' && (
+              <div className="h-full overflow-y-auto">
+                <ProductPanel
+                  products={boxTypes}
+                  quantities={quantities}
+                  onQuantityChange={handleQuantityChange}
+                  onAddProduct={handleAddProduct}
+                  onDeleteProduct={handleDeleteProduct}
+                  lang={lang}
+                />
+              </div>
+            )}
+            {mobileTab === 'workspace' && (
+              <div className="h-full overflow-hidden">
+                {centerPanel}
+              </div>
+            )}
+            {mobileTab === 'stats' && (
+              <div className="h-full overflow-y-auto">
+                <StatsPanel
+                  palletResult={palletResults[0] || null}
+                  palletResults={palletResults}
+                  containerResult={containerResult}
+                  selectedContainerType={selectedContainerType}
+                  onContainerTypeChange={setSelectedContainerType}
+                  onGenerateContainer={handleGenerateContainer}
+                  onDuplicatePallet={duplicatePallet}
+                  onRemovePallet={removePallet}
+                  onUpdateDuplicateCount={updateDuplicateCount}
+                  lang={lang}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Mobile bottom tab bar */}
+          <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex safe-bottom">
+            <button
+              onClick={() => setMobileTab('products')}
+              className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors ${
+                mobileTab === 'products'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-400 dark:text-gray-500'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <span className="text-[10px] font-medium">
+                {lang === 'tr' ? 'Urunler' : 'Products'}
+              </span>
+            </button>
+            <button
+              onClick={() => setMobileTab('workspace')}
+              className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors ${
+                mobileTab === 'workspace'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-400 dark:text-gray-500'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="text-[10px] font-medium">
+                {lang === 'tr' ? 'Palet' : 'Pallet'}
+              </span>
+            </button>
+            <button
+              onClick={() => setMobileTab('stats')}
+              className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-colors ${
+                mobileTab === 'stats'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-400 dark:text-gray-500'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="text-[10px] font-medium">
+                {lang === 'tr' ? 'Istatistik' : 'Stats'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -32,7 +32,7 @@ export default function StatsPanel({
   const t = (tr: string, en: string) => (lang === 'tr' ? tr : en);
 
   return (
-    <div className="w-80 flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 p-4 gap-4 overflow-hidden">
+    <div className="w-full md:w-80 flex flex-col h-full bg-gray-50 dark:bg-gray-900 md:border-l border-gray-200 dark:border-gray-800 p-4 gap-4 overflow-hidden">
       {/* Pallet Stats */}
       {palletResult && (
         <div className="flex-shrink-0">
