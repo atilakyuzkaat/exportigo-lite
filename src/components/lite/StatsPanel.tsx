@@ -81,7 +81,7 @@ export default function StatsPanel({
               <div className="bg-gray-50 dark:bg-gray-700 rounded p-2">
                 <div className="text-gray-600 dark:text-gray-400">{t('Kalan Alan', 'Remaining Area')}</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
-                  {(palletResult.remainingVolume / 1000).toFixed(1)} m³
+                  {(palletResult.remainingVolume / 1000000).toFixed(2)} m³
                 </div>
               </div>
               <div className="bg-gray-50 dark:bg-gray-700 rounded p-2">
