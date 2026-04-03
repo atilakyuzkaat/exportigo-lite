@@ -7,6 +7,8 @@ import { Plus, Minus, Trash2 } from 'lucide-react';
 interface StatsPanelProps {
   palletResult: PalletResult | null;
   palletResults: PalletResult[];
+  selectedPalletIndex: number;
+  onSelectPallet: (index: number) => void;
   containerResult: ContainerResult | null;
   selectedContainerType: ContainerType;
   onContainerTypeChange: (ct: ContainerType) => void;
@@ -20,6 +22,8 @@ interface StatsPanelProps {
 export default function StatsPanel({
   palletResult,
   palletResults,
+  selectedPalletIndex,
+  onSelectPallet,
   containerResult,
   selectedContainerType,
   onContainerTypeChange,
@@ -176,9 +180,21 @@ export default function StatsPanel({
             </div>
             <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
               {palletResults.map((pallet, idx) => (
-                <div key={pallet.id} className="px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                <div
+                  key={pallet.id}
+                  onClick={() => onSelectPallet(idx)}
+                  className={`px-3 py-2 cursor-pointer transition-colors ${
+                    idx === selectedPalletIndex
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 border-l-2 border-emerald-500'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-750'
+                  }`}
+                >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                    <span className={`text-xs font-medium ${
+                      idx === selectedPalletIndex
+                        ? 'text-emerald-700 dark:text-emerald-300'
+                        : 'text-gray-800 dark:text-gray-200'
+                    }`}>
                       #{idx + 1}
                     </span>
                     <div className="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400">
