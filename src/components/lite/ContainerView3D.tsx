@@ -7,13 +7,16 @@ import { useLiteStore } from '@/lib/lite/store';
 import { useMemo } from 'react';
 import * as THREE from 'three';
 
-const PALLET_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
+const PALLET_COLORS = [
+  '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
+  '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16',
+];
 
 function ContainerBox({ containerType }: { containerType: ContainerResult['containerType'] }) {
-  const scale = 0.001;
-  const l = containerType.lengthMM * scale;
-  const w = containerType.widthMM * scale;
-  const h = containerType.heightMM * scale;
+  const s = 0.001;
+  const l = containerType.lengthMM * s;
+  const w = containerType.widthMM * s;
+  const h = containerType.heightMM * s;
 
   const edgeGeo = useMemo(() => new THREE.BoxGeometry(l, h, w), [l, w, h]);
 
@@ -22,58 +25,52 @@ function ContainerBox({ containerType }: { containerType: ContainerResult['conta
       {/* Floor */}
       <mesh position={[l / 2, 0.005, w / 2]}>
         <boxGeometry args={[l, 0.01, w]} />
-        <meshStandardMaterial color="#6B5B45" />
+        <meshStandardMaterial color="#8B7355" />
       </mesh>
 
-      {/* Back wall */}
-      <mesh position={[l, h / 2, w / 2]}>
-        <boxGeometry args={[0.02, h, w]} />
-        <meshStandardMaterial color="#5BA3E6" transparent opacity={0.25} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Left wall */}
-      <mesh position={[l / 2, h / 2, 0]}>
-        <boxGeometry args={[l, h, 0.02]} />
-        <meshStandardMaterial color="#5BA3E6" transparent opacity={0.25} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Right wall */}
-      <mesh position={[l / 2, h / 2, w]}>
-        <boxGeometry args={[l, h, 0.02]} />
-        <meshStandardMaterial color="#5BA3E6" transparent opacity={0.25} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Ceiling */}
-      <mesh position={[l / 2, h, w / 2]}>
-        <boxGeometry args={[l, 0.02, w]} />
-        <meshStandardMaterial color="#5BA3E6" transparent opacity={0.15} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Bold wireframe edges */}
+      {/* Wireframe edges */}
       <lineSegments position={[l / 2, h / 2, w / 2]}>
         <edgesGeometry args={[edgeGeo]} />
         <lineBasicMaterial color="#2563EB" linewidth={2} />
       </lineSegments>
 
-      {/* Corner posts - vertical */}
+      {/* Corner posts */}
       {[[0, 0], [l, 0], [0, w], [l, w]].map(([x, z], i) => (
         <mesh key={`post-${i}`} position={[x, h / 2, z]}>
           <boxGeometry args={[0.04, h, 0.04]} />
-          <meshStandardMaterial color="#2563EB" transparent opacity={0.6} />
+          <meshStandardMaterial color="#1E40AF" />
         </mesh>
       ))}
 
-      {/* Top edge beams */}
-      <mesh position={[l / 2, h, 0]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
-      <mesh position={[l / 2, h, w]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
-      <mesh position={[0, h, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
-      <mesh position={[l, h, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
+      {/* Top beams */}
+      <mesh position={[l / 2, h, 0]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+      <mesh position={[l / 2, h, w]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+      <mesh position={[0, h, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+      <mesh position={[l, h, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#1E40AF" /></mesh>
 
-      {/* Bottom edge beams */}
-      <mesh position={[l / 2, 0, 0]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
-      <mesh position={[l / 2, 0, w]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
-      <mesh position={[0, 0, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
-      <mesh position={[l, 0, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#2563EB" transparent opacity={0.5} /></mesh>
+      {/* Bottom beams */}
+      <mesh position={[l / 2, 0, 0]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+      <mesh position={[l / 2, 0, w]}><boxGeometry args={[l, 0.03, 0.03]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+      <mesh position={[0, 0, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+      <mesh position={[l, 0, w / 2]}><boxGeometry args={[0.03, 0.03, w]} /><meshStandardMaterial color="#1E40AF" /></mesh>
+
+      {/* Semi-transparent walls - rendered last with depthWrite off */}
+      <mesh position={[l, h / 2, w / 2]} renderOrder={999}>
+        <boxGeometry args={[0.01, h, w]} />
+        <meshStandardMaterial color="#93C5FD" transparent opacity={0.12} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh position={[l / 2, h / 2, 0]} renderOrder={999}>
+        <boxGeometry args={[l, h, 0.01]} />
+        <meshStandardMaterial color="#93C5FD" transparent opacity={0.12} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh position={[l / 2, h / 2, w]} renderOrder={999}>
+        <boxGeometry args={[l, h, 0.01]} />
+        <meshStandardMaterial color="#93C5FD" transparent opacity={0.12} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      <mesh position={[l / 2, h, w / 2]} renderOrder={999}>
+        <boxGeometry args={[l, 0.01, w]} />
+        <meshStandardMaterial color="#93C5FD" transparent opacity={0.08} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
     </group>
   );
 }
@@ -87,33 +84,43 @@ function PalletMesh({
   palletResult: PalletResult;
   colorIndex: number;
 }) {
-  const scale = 0.001;
+  const s = 0.001;
   const pt = palletResult.palletType;
-  const l = (pallet.rotated ? pt.width : pt.length) * scale;
-  const w = (pallet.rotated ? pt.length : pt.width) * scale;
-  const h = pt.maxHeight * 0.01;
+  const pL = (pallet.rotated ? pt.width : pt.length) * s;
+  const pW = (pallet.rotated ? pt.length : pt.width) * s;
+  const baseH = 0.15; // pallet base 150mm
+
+  // Calculate actual load height from boxes
+  const maxBoxY = palletResult.boxes.reduce((max, box) => {
+    return Math.max(max, (box.y + box.h));
+  }, 0);
+  const loadH = maxBoxY * s;
 
   const color = PALLET_COLORS[colorIndex % PALLET_COLORS.length];
 
   return (
-    <group position={[pallet.x * scale, 0, pallet.y * scale]}>
-      {/* Pallet base */}
-      <mesh position={[l / 2, 0.075, w / 2]}>
-        <boxGeometry args={[l, 0.15, w]} />
+    <group position={[pallet.x * s, 0, pallet.y * s]}>
+      {/* Pallet base (wood) */}
+      <mesh position={[pL / 2, baseH / 2, pW / 2]}>
+        <boxGeometry args={[pL, baseH, pW]} />
         <meshStandardMaterial color="#C4A36E" />
       </mesh>
 
-      {/* Load block */}
-      <mesh position={[l / 2, 0.15 + h * (palletResult.fillPercentVolume / 100) / 2, w / 2]}>
-        <boxGeometry args={[l * 0.95, h * (palletResult.fillPercentVolume / 100), w * 0.95]} />
-        <meshStandardMaterial color={color} transparent opacity={0.8} />
-      </mesh>
+      {/* Load block - OPAQUE, no transparency issues */}
+      {loadH > 0 && (
+        <mesh position={[pL / 2, baseH + loadH / 2, pW / 2]}>
+          <boxGeometry args={[pL * 0.96, loadH, pW * 0.96]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+      )}
 
-      {/* Wireframe around load */}
-      <mesh position={[l / 2, 0.15 + h * (palletResult.fillPercentVolume / 100) / 2, w / 2]}>
-        <boxGeometry args={[l * 0.95, h * (palletResult.fillPercentVolume / 100), w * 0.95]} />
-        <meshBasicMaterial color={color} wireframe transparent opacity={0.4} />
-      </mesh>
+      {/* Top highlight edge */}
+      {loadH > 0 && (
+        <mesh position={[pL / 2, baseH + loadH, pW / 2]}>
+          <boxGeometry args={[pL * 0.96, 0.005, pW * 0.96]} />
+          <meshStandardMaterial color="white" transparent opacity={0.4} depthWrite={false} />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -121,42 +128,44 @@ function PalletMesh({
 export default function ContainerView3D({ containerResult }: { containerResult: ContainerResult }) {
   const { palletResults } = useLiteStore();
   const ct = containerResult.containerType;
-  const scale = 0.001;
+  const s = 0.001;
 
   const center = useMemo(() => [
-    ct.lengthMM * scale / 2,
-    ct.heightMM * scale / 2,
-    ct.widthMM * scale / 2,
+    ct.lengthMM * s / 2,
+    ct.heightMM * s / 2,
+    ct.widthMM * s / 2,
   ] as [number, number, number], [ct.lengthMM, ct.heightMM, ct.widthMM]);
 
-  const maxDim = Math.max(ct.lengthMM, ct.widthMM, ct.heightMM) * scale;
+  const maxDim = Math.max(ct.lengthMM, ct.widthMM, ct.heightMM) * s;
 
   return (
-    <div className="w-full h-full min-h-[300px] bg-gradient-to-b from-slate-100 to-slate-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden">
+    <div className="w-full h-full min-h-[300px] bg-gradient-to-b from-slate-800 to-slate-900 rounded-xl overflow-hidden">
       <Canvas
-        camera={{ position: [maxDim * 0.8, maxDim * 0.6, maxDim * 0.8], fov: 50 }}
-        gl={{ antialias: true }}
+        camera={{ position: [maxDim * 1.0, maxDim * 0.7, maxDim * 1.0], fov: 45 }}
+        gl={{ antialias: true, alpha: false }}
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[10, 15, 10]} intensity={0.8} />
-        <directionalLight position={[-5, 8, -5]} intensity={0.4} />
+        <color attach="background" args={['#1e293b']} />
+        <ambientLight intensity={0.7} />
+        <directionalLight position={[10, 15, 10]} intensity={1.0} />
+        <directionalLight position={[-5, 8, -5]} intensity={0.5} />
+        <pointLight position={[0, 10, 0]} intensity={0.3} />
 
         <ContainerBox containerType={ct} />
 
         {containerResult.pallets.map((p, i) => {
           const pr = palletResults.find(r => r.id === p.palletResultId) || palletResults[0];
-          return (
+          return pr ? (
             <PalletMesh
               key={i}
               pallet={p}
               palletResult={pr}
               colorIndex={i}
             />
-          );
+          ) : null;
         })}
 
         <gridHelper
-          args={[maxDim * 2, 20, '#d0d0d0', '#e8e8e8']}
+          args={[maxDim * 2, 20, '#475569', '#334155']}
           position={[center[0], -0.01, center[2]]}
         />
 
