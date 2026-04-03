@@ -163,6 +163,53 @@ export default function StatsPanel({
           {t('Konteynere Yükle', 'Load Container')}
         </button>
 
+        {/* Compact Pallet Summary */}
+        {palletResults.length > 0 && (
+          <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                {t('Paletler', 'Pallets')}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {palletResults.length} {t('adet', 'pcs')}
+              </span>
+            </div>
+            <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+              {palletResults.map((pallet, idx) => (
+                <div key={pallet.id} className="px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                      #{idx + 1}
+                    </span>
+                    <div className="flex items-center gap-2 text-[10px] text-gray-500 dark:text-gray-400">
+                      <span>{pallet.boxes.length} {t('koli', 'box')}</span>
+                      <span>·</span>
+                      <span>{pallet.totalWeight.toFixed(0)} kg</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          pallet.fillPercentVolume >= 80
+                            ? 'bg-emerald-500'
+                            : pallet.fillPercentVolume >= 50
+                            ? 'bg-amber-500'
+                            : 'bg-red-400'
+                        }`}
+                        style={{ width: `${Math.min(100, pallet.fillPercentVolume)}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 min-w-[32px] text-right">
+                      {pallet.fillPercentVolume.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Container Stats */}
         {containerResult && (
           <div className="space-y-3 bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
