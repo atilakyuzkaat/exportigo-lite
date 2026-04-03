@@ -47,6 +47,7 @@ export default function LiteApp() {
   const [activeDrag, setActiveDrag] = useState<BoxType | null>(null);
   const [showContainerView, setShowContainerView] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('products');
+  const [selectedPalletIndex, setSelectedPalletIndex] = useState(0);
   const regenerateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasGenerated = useRef(false);
 
@@ -136,6 +137,7 @@ export default function LiteApp() {
     setTimeout(() => {
       generatePallets();
       hasGenerated.current = true;
+      setSelectedPalletIndex(0);
       setMobileTab('workspace');
     }, 50);
   }, [quantities, updateBoxType, generatePallets]);
@@ -210,6 +212,10 @@ export default function LiteApp() {
     );
   }
 
+  // Clamp selectedPalletIndex to valid range
+  const safePalletIndex = palletResults.length > 0 ? Math.min(selectedPalletIndex, palletResults.length - 1) : 0;
+  const currentPallet = palletResults[safePalletIndex] || null;
+
   // Center panel content
   const centerPanel = showContainerView && containerResult ? (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
@@ -232,14 +238,57 @@ export default function LiteApp() {
       </div>
     </div>
   ) : (
-    <PalletWorkspace
-      palletResult={palletResults[0] || null}
-      boxTypes={boxTypes}
-      selectedPalletType={selectedPalletType}
-      onPalletTypeChange={setSelectedPalletType}
-      onGenerate={handleGenerate}
-      lang={lang}
-    />
+    <div className="flex-1 flex flex-col">
+      {/* Pallet navigation bar - only show when multiple pallets */}
+      {palletResults.length > 1 && (
+        <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-3 py-2 flex items-center justify-center gap-3">
+          <button
+            onClick={() => setSelectedPalletIndex(Math.max(0, safePalletIndex - 1))}
+            disabled={safePalletIndex === 0}
+            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            {palletResults.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedPalletIndex(idx)}
+                className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                  idx === safePalletIndex
+                    ? 'bg-emerald-500 text-white shadow-md'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setSelectedPalletIndex(Math.min(palletResults.length - 1, safePalletIndex + 1))}
+            disabled={safePalletIndex === palletResults.length - 1}
+            className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+            {lang === 'tr' ? `Palet ${safePalletIndex + 1} / ${palletResults.length}` : `Pallet ${safePalletIndex + 1} / ${palletResults.length}`}
+          </span>
+        </div>
+      )}
+      <PalletWorkspace
+        palletResult={currentPallet}
+        boxTypes={boxTypes}
+        selectedPalletType={selectedPalletType}
+        onPalletTypeChange={setSelectedPalletType}
+        onGenerate={handleGenerate}
+        lang={lang}
+      />
+    </div>
   );
 
   return (
@@ -318,7 +367,7 @@ export default function LiteApp() {
           />
           {centerPanel}
           <StatsPanel
-            palletResult={palletResults[0] || null}
+            palletResult={currentPallet}
             palletResults={palletResults}
             containerResult={containerResult}
             selectedContainerType={selectedContainerType}
@@ -355,7 +404,7 @@ export default function LiteApp() {
             {mobileTab === 'stats' && (
               <div className="h-full overflow-y-auto">
                 <StatsPanel
-                  palletResult={palletResults[0] || null}
+                  palletResult={currentPallet}
                   palletResults={palletResults}
                   containerResult={containerResult}
                   selectedContainerType={selectedContainerType}
