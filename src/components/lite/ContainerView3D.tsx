@@ -90,11 +90,11 @@ function PalletMesh({
   const pW = (pallet.rotated ? pt.length : pt.width) * s;
   const baseH = 0.15; // pallet base 150mm
 
-  // Calculate actual load height from boxes
-  const maxBoxY = palletResult.boxes.reduce((max, box) => {
-    return Math.max(max, (box.y + box.h));
+  // Calculate actual load height from boxes (z is vertical, height is box height, all in cm)
+  const maxBoxTop = palletResult.boxes.reduce((max, box) => {
+    return Math.max(max, (box.z + box.height));
   }, 0);
-  const loadH = maxBoxY * s;
+  const loadH = maxBoxTop * 0.01; // cm to meters
 
   const color = PALLET_COLORS[colorIndex % PALLET_COLORS.length];
 
