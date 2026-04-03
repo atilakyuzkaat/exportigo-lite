@@ -142,6 +142,18 @@ export default function LiteApp() {
     }, 50);
   }, [quantities, updateBoxType, generatePallets]);
 
+  const handlePalletTypeChange = useCallback((pt: typeof selectedPalletType) => {
+    setSelectedPalletType(pt);
+    if (hasGenerated.current) {
+      setTimeout(() => {
+        generatePallets();
+        if (hasGeneratedContainer.current) {
+          setTimeout(() => generateContainer(), 100);
+        }
+      }, 100);
+    }
+  }, [setSelectedPalletType, generatePallets, generateContainer]);
+
   const handleGenerateContainer = useCallback(() => {
     generateContainer();
     hasGeneratedContainer.current = true;
@@ -242,7 +254,7 @@ export default function LiteApp() {
         palletResult={currentPallet}
         boxTypes={boxTypes}
         selectedPalletType={selectedPalletType}
-        onPalletTypeChange={setSelectedPalletType}
+        onPalletTypeChange={handlePalletTypeChange}
         onGenerate={handleGenerate}
         lang={lang}
       />
