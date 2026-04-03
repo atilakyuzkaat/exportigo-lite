@@ -35,7 +35,7 @@ function ProductCard({ product, quantity, onQuantityChange }: ProductCardProps) 
         </div>
         <div className="flex items-center gap-2 flex-1">
           <div
-            className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
+            className="w-5 h-5 rounded-md flex-shrink-0 shadow-sm ring-1 ring-black/10"
             style={{ backgroundColor: product.color }}
           />
           <span className="font-medium text-sm text-gray-900 dark:text-white truncate">

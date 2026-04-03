@@ -20,6 +20,7 @@ import { BoxType } from '@/lib/lite/types';
 import ProductPanel from '@/components/lite/ProductPanel';
 import StatsPanel from '@/components/lite/StatsPanel';
 import DragOverlayContent from '@/components/lite/DragOverlayContent';
+import ToastContainer, { addToast } from '@/components/lite/Toast';
 
 const ContainerView3D = dynamic(() => import('@/components/lite/ContainerView3D'), { ssr: false });
 const PalletWorkspace = dynamic(() => import('@/components/lite/PalletWorkspace'), { ssr: false });
@@ -139,8 +140,12 @@ export default function LiteApp() {
       hasGenerated.current = true;
       setSelectedPalletIndex(0);
       setMobileTab('workspace');
+      const results = useLiteStore.getState().palletResults;
+      addToast('success', lang === 'tr'
+        ? `${results.length} palet oluşturuldu`
+        : `${results.length} pallets generated`);
     }, 50);
-  }, [quantities, updateBoxType, generatePallets]);
+  }, [quantities, updateBoxType, generatePallets, lang]);
 
   const handlePalletTypeChange = useCallback((pt: typeof selectedPalletType) => {
     setSelectedPalletType(pt);
@@ -159,7 +164,13 @@ export default function LiteApp() {
     hasGeneratedContainer.current = true;
     setShowContainerView(true);
     setMobileTab('workspace');
-  }, [generateContainer]);
+    const cr = useLiteStore.getState().containerResult;
+    if (cr) {
+      addToast('success', lang === 'tr'
+        ? `${cr.totalPallets} palet konteynere yüklendi (${cr.fillPercentVolume.toFixed(0)}% doluluk)`
+        : `${cr.totalPallets} pallets loaded (${cr.fillPercentVolume.toFixed(0)}% fill)`);
+    }
+  }, [generateContainer, lang]);
 
   // Wrapped pallet list operations with auto container regeneration
   const handleDuplicatePallet = useCallback((id: string) => {
@@ -324,6 +335,38 @@ export default function LiteApp() {
           </div>
         </header>
 
+        {/* Progress Stepper */}
+        <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-2 hidden md:flex items-center justify-center gap-0">
+          {[
+            { step: 1, label: lang === 'tr' ? 'Ürünleri Ekle' : 'Add Products', done: boxTypes.length > 0 && boxTypes.some(b => b.quantity > 0) },
+            { step: 2, label: lang === 'tr' ? 'Palet Tipi Seç' : 'Select Pallet', done: !!selectedPalletType },
+            { step: 3, label: lang === 'tr' ? 'Optimize Et' : 'Optimize', done: palletResults.length > 0 },
+            { step: 4, label: lang === 'tr' ? 'Konteynere Yükle' : 'Load Container', done: !!containerResult },
+          ].map(({ step, label, done }, idx) => (
+            <div key={step} className="flex items-center">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                  done
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                }`}>
+                  {done ? (
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : step}
+                </div>
+                <span className={`text-xs font-medium whitespace-nowrap ${
+                  done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'
+                }`}>{label}</span>
+              </div>
+              {idx < 3 && (
+                <div className={`w-8 h-0.5 mx-2 rounded ${done ? 'bg-emerald-400' : 'bg-gray-200 dark:bg-gray-700'}`} />
+              )}
+            </div>
+          ))}
+        </div>
+
         {/* Desktop: 3-panel layout */}
         <div className="flex-1 hidden md:flex overflow-hidden">
           <ProductPanel
@@ -446,6 +489,7 @@ export default function LiteApp() {
       <DragOverlay dropAnimation={null}>
         {activeDrag && <DragOverlayContent product={activeDrag} />}
       </DragOverlay>
+      <ToastContainer />
     </DndContext>
   );
 }
